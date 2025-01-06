@@ -1,0 +1,55 @@
+{%- comment -%}
+  Usage:
+
+  Add your image in front matter according to specification in load-images.liquid
+
+  Include a single image into your page / post with:
+
+  {% include image.liquid id="dirname/filename" class="" %}
+
+  where class can be one of the following:
+  - float-inline-start
+  - float-inline-end
+  - centered
+
+  Notes:
+  - The actual styles can be seen in _sass/_layout-image.scss
+  - put floated images in a <div class="flow-root"></div> element or clear the float where appropriate with a <div class="float-clear"></div> element.
+{%- endcomment -%}
+
+{% include load-images.liquid page_path=page.path %}
+
+{% assign image = page_images | where_exp: 'image', 'image[img_id] == include.id' | first %}
+{% case include.class %}
+  {% when 'float-inline-start' %}
+    {%- assign picture_tag_preset = 'halfwidth' -%}
+  {% when 'float-inline-end' %}
+    {%- assign picture_tag_preset = 'halfwidth' -%}
+  {% when 'centered' %}
+    {%- assign picture_tag_preset = 'fullwidth' -%}
+  {% else %}
+    {{
+      'Image with id=`'
+      | append: include.id
+      | append: '` specifies unsupported class: `'
+      | append: include.class
+      | append: '`'
+      | raise_error
+    }}
+{% endcase %}
+
+{% if image == null %}
+  <img src="" alt="{{'Imagefile with id=`' | append: include.id | append: '` is missing!' | raise_error }}">
+{% else %}
+  <figure class="{{include.class}}">
+    {%
+      picture
+      {{ picture_tag_preset }}
+      "{{ image[img_jpt_relative_path] }}"
+      --alt {{ image[img_alt] | default: image[img_name] }}
+    %}
+    {%- if image[img_caption] != "" -%}
+      <figcaption>{{ image[img_caption] }}</figcaption>
+    {% endif %}
+  </figure>
+{% endif %}

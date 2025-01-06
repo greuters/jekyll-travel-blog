@@ -1,0 +1,23 @@
+lang_name: Deutsch
+# TODO: l10n of month names and use following format
+# date_format: "%-d. %B %Y"
+date_format: "%-d.%-m.%Y"
+recent_posts: Aktuelle Beiträge
+read_full_post: Den ganzen Beitrag lesen..
+rss_subscribe: '<a href="$url">per RSS abonnieren</a>'
+no_translation: Tut mir leid, diese Seite ist auf Deutsch nicht verfügbar.
+closeGallery: "Galerie schliessen"
+toggleMaximize: "Maximieren"
+previousSlide: "Vorheriges Foto"
+nextSlide: "Nächstes Foto"
+download: "Download"
+playVideo: "Video abspielen"
+mediaLoadingFailed: "Ups... Ladevorgang fehlgeschlagen..."
+viewFullscreen: Vollbildmodus einschalten
+exitFullscreen: Vollbildmodus verlassen
+zoomIn: Vergrössern
+zoomOut: Verkleinern
+contactName: Name
+contactEmail: Email
+contactMessage: Nachricht
+contactSubmit: Senden

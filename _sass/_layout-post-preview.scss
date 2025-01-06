@@ -1,0 +1,76 @@
+@use "_variables" as *;
+
+/* styling the post-preview mobile first */
+.post-preview {
+    margin-block: $large-spacing-size;
+
+    .preview-image,
+    .metadata,
+    .title,
+    .preview-text,
+    footer {
+        margin-block: $small-spacing-size;
+    }
+}
+
+/* common stuff for wider screen grid layouts */
+@media screen and (min-width: $tablet-width) {
+    .post-preview {
+        display: grid;
+        row-gap: $small-spacing-size;
+        column-gap: $base-spacing-size;
+
+        /* grid layout for tablets */
+        grid-template-areas:
+            "metadata title"
+            "image text"
+            "image footer"
+            "image empty";
+        grid-template-columns: 50% 1fr;
+        grid-template-rows: 2rem auto 2rem 1fr;
+
+        // remove all margins to get a denser vertical layout
+        .preview-image {
+            grid-area: image;
+            margin-block: 0;
+        }
+
+        .metadata {
+            grid-area: metadata;
+            justify-self: end;
+            align-self: end; // necessary to properly align vertically with title
+            margin-block: 0;
+        }
+
+        .title {
+            grid-area: title;
+            margin-block: 0;
+        }
+
+        .preview-text {
+            grid-area: text;
+            margin-block: 0;
+        }
+
+        footer {
+            grid-area: footer;
+        }
+    }
+
+    @media screen and (min-width: $laptop-width) {
+        .post-preview {
+            /* grid layout for laptops */
+            grid-template-areas:
+                "image metadata"
+                "image title"
+                "image text"
+                "image footer"
+                "image empty";
+            grid-template-rows: 2rem 2rem auto 2rem 1fr;
+
+            .metadata {
+                justify-self: start;
+            }
+        }
+    }
+}

@@ -1,0 +1,21 @@
+lang_name: English
+date_format: "%-d/%b/%Y"
+read_full_post: Read the full post..
+recent_posts: Recent posts
+rss_subscribe: '<a href="$url">subscribe via RSS</a>'
+no_translation: Sorry, this page is not available in English.
+closeGallery: "Close gallery"
+toggleMaximize: "Toggle maximize"
+previousSlide: "Previous slide"
+nextSlide: "Next slide"
+download: "Download"
+playVideo: "Play video"
+mediaLoadingFailed: "Oops... Failed to load content..."
+viewFullscreen: View Fullscreen
+exitFullscreen: Exit Fullscreen
+zoomIn: Zoom in
+zoomOut: Zoom out
+contactName: Name
+contactEmail: Email
+contactMessage: Message
+contactSubmit: Send

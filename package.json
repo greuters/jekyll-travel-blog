@@ -1,0 +1,35 @@
+{
+  "scripts": {
+    "clean": "bundle exec jekyll clean && bundle clean",
+    "build": "webpack --mode=production && JEKYLL_ENV=production bundle exec jekyll build",
+    "postbuild": "npm run create-track-archives && npm run link-tracks && npm run clean-images",
+    "create-track-archives": "find assets/tracks/ -maxdepth 1 -mindepth 1 -type d -exec sh -c \"find {}/ -name '*lowres.gpx' -printf '%f\\0' | tar -czf _site/{}/lowres.tar.gz -C {}/ --null --files-from -\" \\; && rm -f _site/assets/tracks/*/*lowres.gpx",
+    "link-tracks": "rm -rf _site/*/assets/tracks && find -maxdepth 0 -type d -path '_site/*/assets' -execdir ln -s ../../assets/tracks assets/tracks ';'",
+    "clean-images": "rm -rf _site/assets/images/*/ && rm -rf _site/*/assets/images",
+    "serve": "http-server -p 9090 _site/",
+    "serve-https": "http-server -p 9090 -g -b -S -C cert.pem _site/",
+    "postinstall": "bundle install --jobs 4 --retry 3",
+    "update": "npm update --save && npm outdated && gem update bundler && bundler update && echo to update node, manually run: nvm install node and remember to update github workflow"
+  },
+  "author": "Simon Greuter",
+  "homepage": "https://github.com/greuters/jekyll-travel-blog#readme",
+  "devDependencies": {
+    "compression-webpack-plugin": "^11.1.0",
+    "css-loader": "^7.1.2",
+    "css-minimizer-webpack-plugin": "^7.0.0",
+    "mini-css-extract-plugin": "^2.9.2",
+    "sass": "^1.83.1",
+    "sass-loader": "^16.0.4",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1",
+    "leaflet": "^1.9.4",
+    "leaflet-fullscreen": "^1.0.2",
+    "leaflet-gpx": "^2.1.2",
+    "lightgallery": "^2.8.2",
+    "pako": "^2.1.0",
+    "tinytar-fix": "^0.1.1"
+  }
+}

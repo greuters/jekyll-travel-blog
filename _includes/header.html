@@ -1,0 +1,61 @@
+<header class="site-header">
+  <nav>
+    <ul>
+      {% assign top_level_url = page.url | split: '/' | slice: '1' | first | prepend: '/' | append: '/' %}
+      {%- assign default_navigation_urls = site.emptyArray | push: top_level_url -%}
+      {%- assign navigation_urls = site.navigation_urls | default: default_navigation_urls -%}
+
+      {%- assign marker_classes = site.emptyArray -%}
+      {%- unless navigation_urls contains top_level_url -%}
+        {%- assign marker_classes = marker_classes | push: 'current-toplevel' -%}
+      {%- endunless -%}
+      <li class="{{marker_classes | join: ' '}} home">
+        <a aria-label="Home" href="{{ '/' | relative_url }}">
+          <svg class="svg-icon" aria-hidden="true">
+            <use href="{{ '/assets/icons.svg#home' | relative_url }}"></use>
+          </svg>
+        </a>
+      </li>
+
+      <li class="dropdown toplevel-urls">
+        <button aria-label="Blogs">
+          <svg class="svg-icon" aria-hidden="true">
+            <use href="{{ '/assets/icons.svg#hamburger' | relative_url }}"></use>
+          </svg>
+        </button>
+
+        <ul aria-label="submenu">
+          {% for prominent_url in navigation_urls %}
+            {%- assign marker_classes = site.emptyArray -%}
+            {%- if top_level_url == prominent_url -%}
+              {%- assign marker_classes = marker_classes | push: 'current-toplevel' -%}
+            {%- endif -%}
+            {%- assign prominent_page = site.pages | where: 'url', prominent_url | first -%}
+            <li class="{{marker_classes | join: ' '}}">
+              <a href="{{prominent_page.url | relative_url}}">
+                {{- prominent_page.title | escape -}}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </li>
+
+      <li class="dropdown language-selector">
+        <button>{{ site.active_lang }}</button>
+
+        <ul aria-label="submenu">
+          {% for lang in site.languages %}
+            {%- assign lang_name = site.data[lang].l10n.lang_name -%}
+            <li>
+              {%- if lang == site.default_lang -%}
+                <a href=" {{ site.baseurl }}{{ page.url }}">{{ lang_name }}</a>
+              {%- else -%}
+                <a href="{{ site.baseurl }}/{{ lang }}{{ page.url }}">{{ lang_name }}</a>
+              {%- endif -%}
+            </li>
+          {% endfor %}
+        </ul>
+      </li>
+    </ul>
+  </nav>
+</header>

@@ -1,0 +1,255 @@
+---
+layout: default
+required_modules:
+- init_map
+---
+{% comment %}
+  Dedicated layout for tour blogs
+  - a map is shown on the top if space allows
+    - if GPS tracks are available, they are shown / animated on the map
+    - preview images of the posts are distributed along the track
+  - main content is a list of your posts
+  - the content of the overview page using this layout is shown at the bottom of the page
+
+  Requirements for overview page:
+  - layout: tour-blog
+  - variable 'post_category' with the category of posts that should be listed
+  - variable 'init_bounds' with SE and NW corners of the initial region to show
+    format: '[[Lat0, Lon0], [Lat1, Lon1]]', e.g. '[[10, -127], [51, 8]]'
+    Note: these coordinates are approximate as the map region shown also
+    depends on the users viewport
+  - GPS tracks should be located in assets/tracks/post_category/, each track having a low and a high
+    resolution file named according to the following schema: trackNumber_dd-mm-YYYY_vehicle_resolution.gpx
+    Example: 0000_17-12-2022_bicycle_highres.gpx, 0001_17-12-2022_bicycle_lowres.gpx
+    vehicle can be one of [bicycle, sail, fossil]
+    trackNumber has to be consecutive increasing integers starting from 0000
+
+  Requirements for posts:
+  - optional variable 'track_number'; the preview image will be shown on the same frame with this track during animation
+    If 'track_number' is omitted, it will be assigned from the last GPX track before the date of the post or 0 if no tracks exist.
+  - optional variable 'lat_lng' with the latitude and longitude where the preview image should be located on the map
+    format: '[latitude, longitude]', e.g. '[16.94, -96.27653]'
+    If 'lat_lng' is omitted, the preview image will be centered on the track given by 'track_number'.
+  - optional variable 'spread_direction'; if given, the preview image will be offset from its original position in lower zoom levels to reduce overlapping
+    valid values: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', '']
+{% endcomment %}
+
+{%- if page.post_category == null -%}
+  {{ 'Variable post_category is missing!' | raise_error }}
+{%- endif -%}
+
+{%- if page.init_bounds == null -%}
+  {{ 'Variable init_bounds is missing!' | raise_error }}
+{%- endif -%}
+
+{% comment %} load gpx tracks {% endcomment %}
+{%- assign track_number = 0 -%}
+{%- assign track_color = 1 -%}
+{%- assign track_vehicle = 2 -%}
+{%- assign track_highres_path = 3 -%}
+{%- assign track_lowres_path = 4 -%}
+{%- assign track_date = 5 -%}
+
+{%- assign highresTrackFiles = site.static_files
+  | where_exp: 'file', 'file.path contains "assets/tracks"'
+  | where_exp: 'file', 'file.path contains page.post_category'
+  | where_exp: 'file', 'file.path contains "highres.gpx"'
+  | sort: 'path'
+-%}
+{%- assign tracks = site.emptyArray -%}
+{%- assign expectedTrackNumber = 0 -%}
+{%- for highresTrackFile in highresTrackFiles -%}
+  {%- assign lowresTrackFilePath = highresTrackFile.path | replace: 'highres', 'lowres' -%}
+  {%- assign lowresTrackFile = site.static_files
+    | where_exp: 'file', 'file.path contains lowresTrackFilePath'
+    | first
+  -%}
+  {%- if lowresTrackFile == null -%}
+    {{ 'Track file `' | append: lowresTrackFilePath | append: '` is missing!' | raise_error }}
+  {%- endif -%}
+
+  {% comment %}
+    assuming name format trackNumber_dd-mm-YYYY_vehicle_resolution.gpx
+  {% endcomment %}
+  {%- assign nameParts = highresTrackFile.name | replace: '.', '_' | split: '_' -%}
+  {%- assign trackNumber = nameParts[0] | plus: 0 -%}
+  {%- assign dateString = nameParts[1] -%}
+  {%- assign vehicle = nameParts[2] -%}
+  {%- assign resolution = nameParts[3] -%}
+  {%- assign colorIndex = trackNumber | modulo: 2 -%}
+  {%- if trackNumber != expectedTrackNumber -%}
+    {{
+      "Expected trackNumber '"
+      | append: expectedTrackNumber
+      | append: "' but found '"
+      | append: trackNumber
+      | append: "'"
+      | raise_error
+    }}
+  {%- endif -%}
+  {%- if vehicle == 'bicycle' -%}
+    {%- assign colors = 'limegreen green' | split: ' ' -%}
+  {%- elsif vehicle == 'sail' -%}
+    {%- assign colors = 'dodgerblue navy' | split: ' ' -%}
+  {%- elsif vehicle == 'fossil' -%}
+    {%- assign colors = 'gray black' | split: ' ' -%}
+  {%- else -%}
+    {{ 'Unknown vehicle type: ' | append: vehicle | raise_error }}
+  {%- endif -%}
+
+  {%- assign track = site.emptyArray -%}
+  {%- assign track = track | push: trackNumber -%}
+  {%- assign track = track | push: colors[colorIndex] -%}
+  {%- assign track = track | push: vehicle -%}
+  {%- assign track = track | push: highresTrackFile.path -%}
+  {%- assign track = track | push: lowresTrackFilePath -%}
+  {%- assign track = track | push: dateString -%}
+
+  {%- assign tracks = tracks | push: track -%}
+  {%- assign expectedTrackNumber = expectedTrackNumber | plus: 1 -%}
+{%- endfor -%}
+
+{% comment %} initialize sorted map trackDate:trackNumber {% endcomment %}
+{%- assign trackDateMap = site.emptyArray -%}
+{%- for track in tracks -%}
+  {%- assign entry = track[track_date] | date: '%Y-%m-%d' | append: ':' | append: track[track_number] -%}
+  {%- assign trackDateMap = trackDateMap | push: entry -%}
+{%- endfor -%}
+{%- assign trackDateMap = trackDateMap | sort -%}
+
+<aside id="map-box">
+  <div id="map"></div>
+</aside>
+
+{%- assign trackNumbersUsedByPosts = site.emptyArray -%}
+<ul id="post-list" class="post-list">
+  {%- for post in site.categories[page.post_category] -%}
+    <li>
+      {%- if post.track_number == null -%}
+        {%- assign trackNumber = 0 -%}
+        {%- for entry in trackDateMap -%}
+          {%- assign trackNumber = entry | split: ':' | last | plus: 0 -%}
+          {%- assign entryDate = entry | split: ':' | first -%}
+          {%- assign postDate = post.date | date: '%Y-%m-%d' -%}
+          {%- if postDate <= entryDate -%}
+            {%- break -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- else -%}
+        {%- assign trackNumber = post.track_number | plus: 0 -%}
+      {%- endif -%}
+
+      {%- unless -1 < trackNumber and trackNumber <= expectedTrackNumber -%}
+        {{
+          "Post '"
+          | append: post.url
+          | append: "' has invalid track_number: '"
+          | append: trackNumber
+          | append: "'"
+          | raise_error
+        }}
+      {%- endunless -%}
+
+      {%- unless post.lat_lng == null -%}
+        {%- assign latLng = post.lat_lng | replace: '[', '' | replace: ']', '' | split: ', ' -%}
+        {%- assign lat = latLng[0] | plus: 0 -%}
+        {%- assign lng = latLng[1] | plus: 0 -%}
+        {%- assign expectedLatLng = '[' | append: latLng[0] | append: ', ' | append: latLng[1] | append: ']' -%}
+        {%- if post.lat_lng != expectedLatLng -%}
+          {{
+            "Invalid coordinates for '"
+            | append: post.url
+            | append: "' given: lat_lng = '"
+            | append: post.lat_lng
+            | append: "'; expected format = '"
+            | append: expectedLatLng
+            | append: "'"
+            | raise_error
+          }}
+        {%- endif -%}
+      {%- endunless -%}
+
+      {%- case post.spread_direction -%}
+        {%- when 'N' -%}
+          {%- assign spread_lat_lng = '[1, 0]' -%}
+        {%- when 'NE' -%}
+          {%- assign spread_lat_lng = '[1, 1]' -%}
+        {%- when 'E' -%}
+          {%- assign spread_lat_lng = '[0, 1]' -%}
+        {%- when 'SE' -%}
+          {%- assign spread_lat_lng = '[-1, 1]' -%}
+        {%- when 'S' -%}
+          {%- assign spread_lat_lng = '[-1, 0]' -%}
+        {%- when 'SW' -%}
+          {%- assign spread_lat_lng = '[-1, -1]' -%}
+        {%- when 'W' -%}
+          {%- assign spread_lat_lng = '[0, -1]' -%}
+        {%- when 'NW' -%}
+          {%- assign spread_lat_lng = '[1, -1]' -%}
+        {%- when null, '' -%}
+          {%- assign spread_lat_lng = '[0, 0]' -%}
+        {%- else -%}
+          {{
+            "Post '"
+            | append: post.url
+            | append: "' has invalid spread direction: '"
+            | append: post.spread_direction
+            | append: "'"
+            | raise_error
+          }}
+      {%- endcase -%}
+
+      {%- if forloop.index0 == 0 -%}
+        {%- assign highpriority = true -%}
+      {%- else -%}
+        {%- assign highpriority = false -%}
+      {%- endif -%}
+      {%- if forloop.index0 < 2 -%}
+        {%- assign loadingStrategy = 'eager' -%}
+      {%- else -%}
+        {%- assign loadingStrategy = 'lazy' -%}
+      {%- endif -%}
+      {%- include post-preview.html post=post track_number=trackNumber lat_lng=post.lat_lng spread_lat_lng=spread_lat_lng highpriority=highpriority loading=loadingStrategy -%}
+    </li>
+  {%- endfor -%}
+</ul>
+
+<aside id="overview-content">
+  {{ content | newline_to_br | replace: 'br /', 'br' }}
+</aside>
+
+<script id="track-data" type="application/json" defer>
+  [
+    {% for track in tracks %}
+      {
+        "trackNumber": "{{track[track_number]}}",
+        "color": "{{track[track_color]}}",
+        "vehicle": "{{track[track_vehicle]}}",
+        "date": "{{track[track_date]}}",
+        "highresPath": "{{track[track_highres_path]}}",
+        "lowresPath": "{{track[track_lowres_path]}}"
+      }
+      {%- unless track == tracks.last -%}
+        ,
+      {%- endunless -%}
+    {% endfor %}
+  ]
+</script>
+
+{%- if jekyll.environment == 'development' -%}
+  {%- assign devMode = 'true' -%}
+{%- else -%}
+  {%- assign devMode = 'false' -%}
+{%- endif -%}
+<script
+  id="init-map"
+  type="module"
+  src="{{'/assets/dist/init_map.bundle.js' | relative_url}}"
+  data-dev-mode="{{ devMode }}"
+  data-lowres-track-archive="{{ "/assets/tracks/" | append: page.post_category | append: "/lowres.tar.gz" | relative_url }}"
+  data-init-bounds="{{ page.init_bounds }}"
+  data-view-fullscreen-l10n="{{ site.data[site.active_lang].l10n.viewFullscreen }}"
+  data-exit-fullscreen-l10n="{{ site.data[site.active_lang].l10n.exitFullscreen }}"
+  data-zoom-in-l10n="{{ site.data[site.active_lang].l10n.zoomIn }}"
+  data-zoom-out-l10n="{{ site.data[site.active_lang].l10n.zoomOut }}"
+></script>

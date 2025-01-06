@@ -1,0 +1,73 @@
+# css related base measurements
+content_width: &content_width '1200px'
+
+media_queries:
+  mobile: 'min-width: 420px'
+  tablet: 'min-width: 800px'
+  wide: 'min-width: 1200px'
+
+presets:
+  base: &base
+    formats: [webp, jpg]
+    format_quality:
+      jpg: 60
+      webp: 55
+      avif: 50
+
+  fullwidth:
+    # occupy the whole width on all screens
+    <<: *base
+    dimension_attributes: true
+    widths: [420, 730, 1366, 1600] # oversized for high DPR devices, but max available input image size = 1600px
+    sizes:
+      wide: *content_width
+    size: '100vw'
+    fallback_width: 730
+
+  halfwidth:
+    # occupy only half the width on tablets and bigger
+    dimension_attributes: true
+    <<: *base
+    widths: [420, 730, 1300] # oversized up to DPR 3x430px
+    sizes:
+      tablet: 'min(50vw, 600px)'
+    size: '100vw'
+    fallback_width: 730
+
+  preview-thumbnail:
+    dimension_attributes: true
+    markup: data_img
+    widths: [100]
+    format_quality:
+      jpg: 40
+    fallback_format: jpg
+    fallback_width: 100
+    attributes:
+      img: class="preview-thumbnail"
+
+  image-divider:
+    dimension_attributes: true
+    <<: *base
+    widths: [250, 420, 730, 1366, 1600] # oversized for high DPR devices, but max available input image size = 1600px
+    fallback_width: 420
+
+  lightgallery-srcset: &lightgallery-srcset
+    <<: *base
+    markup: naked_srcset
+    widths: [420, 730, 1366, 1600] # oversized for high DPR devices, but max available input image size = 1600px
+
+  lightgallery-srcset-webp:
+    <<: *lightgallery-srcset
+    formats: [webp]
+
+  lightgallery-srcset-jpg:
+    <<: *lightgallery-srcset
+    formats: [jpg]
+
+  lightgallery-thumbnail:
+    markup: img
+    widths: [60]
+    format_quality:
+      jpg: 40
+    fallback_format: jpg
+    fallback_width: 60

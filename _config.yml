@@ -1,0 +1,69 @@
+## Example configuration - your general config goes here
+title: jekyll-travel-blog Live Preview
+author: Simon Greuter
+github_username: greuters
+contact_form_action: https://formspree.io/f/xlddoyye
+languages: ["en", "de"]
+baseurl: /jekyll-travel-blog
+
+navigation_urls:
+  - /world-tour/
+  - /contact/
+
+exclude:
+  - README.md
+  - LICENSE.txt
+  - package.json
+  - package-lock.json
+  - webpack
+  - original_icons
+  - init_blog.sh
+  - convert_tracks.py
+  - screenshot.png
+
+## Default configuration - only adapt below if you know what you are doing
+
+# stop jekyll from deleting following directories, used by other build tools
+keep_files:
+  - "assets/tracks"
+  - "assets/generated"
+
+excerpt_separator: ""
+
+emptyArray: []
+
+liquid:
+  error_mode: strict
+  strict_filters: true
+  # strict_variables can unfortunately not be enabled due to feed.xml generation
+  # strict_variables: true
+
+sass:
+  sourcemap: development
+
+# Build settings
+plugins:
+  - jekyll-feed
+  - jekyll-polyglot
+  - jekyll-image-size
+  - jekyll_picture_tag
+
+# "assets/images" is explicitly not excluded from localization. This is necessary to be able to statically verify that
+# all images used in any blog post, no matter its language, are available. The check is done in load-images.liquid
+#
+# For further info check polyglot bug https://github.com/untra/polyglot/issues/131
+# -> static files are not available for sub-language pages when they are excluded from localization
+#
+# For the same reason, assets/tracks is not excluded from localization at the moment, instead the files are removed
+# and replaced with links to the original asset after build in package.json
+exclude_from_localization:
+  ["assets/dist", "assets/download", "assets/js", "assets/generated"]
+
+# parallel localization of pages sharing the same images conflicts with
+# jekyll_picture_tag - use at your own risk
+parallel_localization: false
+
+# Settings for jekyll_picture_tag
+picture:
+  source: assets/images/
+  output: assets/generated/

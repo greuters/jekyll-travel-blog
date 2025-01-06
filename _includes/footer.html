@@ -1,0 +1,42 @@
+<footer class="site-footer">
+  <p>{{- site.data[site.active_lang].l10n.site_description | newline_to_br | replace: 'br /', 'br' -}}</p>
+  <ul>
+    {%- if site.github_username -%}
+      <li>
+        <a href="https://github.com/{{ site.github_username| cgi_escape | escape }}">
+          <svg class="svg-icon">
+            <use href="{{ '/assets/icons.svg#github-invertocat' | relative_url }}"></use>
+          </svg>
+          <span>{{ site.github_username | escape }}</span>
+        </a>
+      </li>
+    {%- endif -%}
+    {%- if site.rss -%}
+      <li>
+        <a href="{{ 'feed.xml' | relative_url }}">
+          <svg class="svg-icon">
+            <use href="{{ '/assets/icons.svg#rss' | relative_url }}"></use>
+          </svg>
+          <span>{{ site.rss | escape }}</span>
+        </a>
+      </li>
+    {%- endif -%}
+  </ul>
+  <address>
+    <ul>
+      {%- if site.author -%}
+        <li>
+          <svg class="svg-icon">
+            <use href="{{ '/assets/icons.svg#copyright' | relative_url }}"></use>
+          </svg>
+          <span>{{ site.author | escape }}</span>
+        </li>
+      {%- endif -%}
+      {%- if site.email -%}
+        <li>
+          <a class="u-email" href="mailto:{{ site.email }}">{{ site.email }}</a>
+        </li>
+      {%- endif -%}
+    </ul>
+  </address>
+</footer>

@@ -1,0 +1,52 @@
+name: Jekyll CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install image libraries
+      run: |
+        sudo apt-get install libvips-tools webp libjpeg-dev
+
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with: 
+        node-version: '23.x'
+        cache: 'npm'
+
+    - name: Use Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.3
+        bundler-cache: true
+
+    - name: Set up dependencies
+      run: |
+        bundle config set path vendor/bundle
+        npm ci
+
+    - name: Build the site
+      run: |
+        npm run build
+
+    - name: Push the site to the gh-pages branch
+      run: |
+        sudo chown $( whoami ):$( whoami ) ${{ github.workspace }}/_site
+        cd ${{ github.workspace }}/_site
+        git init -b gh-pages
+        git config user.name ${{ github.actor }}
+        git config user.email ${{ github.actor }}@users.noreply.github.com
+        git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
+        git add .
+        git commit -m "Deploy site built from commit ${{ github.sha }}"
+        git push -f -u origin gh-pages

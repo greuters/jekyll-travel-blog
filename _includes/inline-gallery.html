@@ -1,0 +1,42 @@
+{%- comment -%}
+  Usage:
+
+  Add your images in front matter according to specification in load-images.liquid
+
+  Include a gallery from one collection into your page / post with:
+
+  {% include inline-gallery.html collection="dirname" %}
+{%- endcomment -%}
+
+{% include load-images.liquid page_path=page.path %}
+
+<div id="inline-gallery-{{include.collection}}" class="inline-gallery-container">
+  {%- for image in page_images -%}
+    {%- if image[img_collection] == include.collection -%}
+      {%- capture srcset_webp -%}
+        {%-
+          picture
+          lightgallery-srcset-webp
+          "{{ image[img_jpt_relative_path] }}"
+        -%}
+      {%- endcapture -%}
+      {%- capture srcset_jpg -%}
+       {%-
+         picture
+         lightgallery-srcset-jpg
+         "{{ image[img_jpt_relative_path] }}"
+       -%}
+      {%- endcapture -%}
+      {%- assign media_query = 'min(100vw, calc(100vh * ' | append: image[img_aspect_ratio] | append: '))' -%}
+      {%- assign src = "'" | append: '[{"srcset": "' | append: srcset_webp | append: '", "type": "image/webp"}, {"srcset": "' | append: srcset_jpg | append: '", "type": "image/jpeg"}]' | append: "'" -%}
+      <a
+        data-sources={{ src }}
+        data-sizes="min(100vw, calc(100vh * {{ image[img_aspect_ratio] }}))"
+        data-sub-html="<div class='lightGallery-captions'>{{ image[img_caption] }}</div>"
+        hidden
+      >
+        {% picture lightgallery-thumbnail "{{ image[img_jpt_relative_path] }}" %}
+      </a>
+    {% endif %}
+  {% endfor %}
+</div>
