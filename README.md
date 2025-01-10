@@ -45,8 +45,9 @@ adapt the provided example. This section gets you up and running.
     $ npm ci
 ```
 
-5. Make sure to set `baseurl` correctly to deploy on Github Pages. If you build an organization or user site, remove it alltogether. For project sites, specify the repository name after an initial `/`.
+5. Make sure to set `baseurl` correctly in both `_config.yml` and `package.json`. To deploy on Github Pages: if you build an organization or user site, remove it alltogether. For project sites, specify the repository name after an initial `/`.
 
+   **Note:** http-server, used to serve your site during development, does not support a base url yet but should do so with the next release (date not announced yet). For the moment, a workaround is provided in `package.json` to build project sites locally.
 
 To get upstream changes, sync your fork e.g. on [Github](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork)
 and run `npm ci` again.

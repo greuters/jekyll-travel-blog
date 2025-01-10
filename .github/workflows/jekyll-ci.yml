@@ -11,6 +11,9 @@ jobs:
     permissions:
       contents: write
 
+    env:
+      GITHUB_BUILD: "TRUE"
+
     steps:
     - uses: actions/checkout@v4
 

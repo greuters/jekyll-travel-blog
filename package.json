@@ -1,13 +1,17 @@
 {
+  "config": {
+    "baseurl": "/jekyll-travel-blog"
+  },
   "scripts": {
     "clean": "bundle exec jekyll clean && bundle clean",
     "build": "webpack --mode=production && JEKYLL_ENV=production bundle exec jekyll build",
-    "postbuild": "npm run create-track-archives && npm run link-tracks && npm run clean-images",
+    "postbuild": "npm run create-track-archives && npm run link-tracks && npm run clean-images && test ! $GITHUB_BUILD && test \"${npm_package_config_baseurl}\" != \"\" && npm run baseurl-workaround || true",
     "create-track-archives": "find assets/tracks/ -maxdepth 1 -mindepth 1 -type d -exec sh -c \"find {}/ -name '*lowres.gpx' -printf '%f\\0' | tar -czf _site/{}/lowres.tar.gz -C {}/ --null --files-from -\" \\; && rm -f _site/assets/tracks/*/*lowres.gpx",
     "link-tracks": "rm -rf _site/*/assets/tracks && find -maxdepth 0 -type d -path '_site/*/assets' -execdir ln -s ../../assets/tracks assets/tracks ';'",
     "clean-images": "rm -rf _site/assets/images/*/ && rm -rf _site/*/assets/images",
-    "serve": "http-server -p 9090 _site/",
-    "serve-https": "http-server -p 9090 -g -b -S -C cert.pem _site/",
+    "baseurl-workaround": "mkdir _site${npm_package_config_baseurl} && find _site/ -maxdepth 1 -mindepth 1 -not -path _site${npm_package_config_baseurl} -exec mv '{}' _site${npm_package_config_baseurl} \\;",
+    "serve": "http-server -p 9090 _site",
+    "serve-https": "http-server -p 9090 -g -b -S -C cert.pem _site",
     "postinstall": "bundle install --jobs 4 --retry 3",
     "update": "npm update --save && npm outdated && gem update bundler && bundler update && echo to update node, manually run: nvm install node and remember to update github workflow"
   },
